@@ -26,7 +26,7 @@ public class ResetPositionTask implements Task {
 	public void execute() {
 		try {
 			main.currentStatus = "Resetting Position";
-			DaxWalker.getInstance().walkTo(Constants.MARKETPLACE);
+			DaxWalker.getInstance().walkTo(ArkUtility.approximateNearTile(Constants.MARKETPLACE, 4));
 		} catch (Exception e) {
 			General.println("Dax Walker said: " + e.getMessage());
 		}
