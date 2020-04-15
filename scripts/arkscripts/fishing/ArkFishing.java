@@ -80,7 +80,6 @@ public class ArkFishing extends Script implements Starting, Painting, MessageLis
 		//Credentials hidden as I use a purchased key
 		WebWalkerServerApi.getInstance().setDaxCredentialsProvider(new DaxCredentialsProvider() {
 			public DaxCredentials getDaxCredentials() {
-			//Credentials removed to protect API key
 				return new DaxCredentials("", "");
 			}
 		});

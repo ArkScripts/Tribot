@@ -29,12 +29,12 @@ public class BankingTask implements Task {
 	public void execute() {
 		
 		if (!Banking.isInBank()) {
-			main.currentStatus = "Travelling to Bank...";
 			main.currentStatus = "Reaction time wait before Banking...";
 
 			ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT_POST_FISHING,
 					Constants.MAXIMUM_REACTION_TIME_WAIT_POST_FISHING);
 			try {
+				main.currentStatus = "Travelling to Bank...";
 				DaxWalker.getInstance().walkToBank();
 			} catch (Exception e) {
 				General.println("Dax Walker said: " + e.getMessage());
