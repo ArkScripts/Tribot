@@ -1,13 +1,16 @@
 package scripts.api.ark;
 
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import org.tribot.api.General;
 import org.tribot.api.Timing;
+import org.tribot.api.input.Keyboard;
 import org.tribot.api.interfaces.Clickable;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Camera;
@@ -35,19 +38,20 @@ import scripts.dax_api.shared.helpers.RSItemHelper;
 import scripts.dax_api.walker.utils.AccurateMouse;
 import scripts.wastedbro.api.rsitem_services.GrandExchange;
 
-/*Written by Marcusihno from Tribot*/
-public class ArkUtility {
+/**
+ * @author Marcusihno from Tribot
+ */
 
-	public static final int SHORT_TIMEOUT = 2000;
-	public static final int DEFAULT_TIMEOUT = 4000;
-	public static final int MEDIUM_TIMEOUT = 10000;
-	public static final int LONG_TIMEOUT = 20000;
+public class ArkUtility {
 
 	public static final int IDLE_ANIMATION = -1;
 
 	private static final int[] VIAL = { 229 };
 
 	private static final char[] c = new char[] { 'k', 'm', 'b', 't' };
+	
+	private static int minTimeToWaitToGoOffScreen;
+	private static long lastOffScreen;
 
 	private static DPathNavigator navigator = new DPathNavigator();
 
@@ -59,7 +63,7 @@ public class ArkUtility {
 	 */
 	public static void withdrawFromBank(int number, int[] item) {
 		if (bankContains(item)) {
-			Timing.waitCondition(() -> attemptWithdrawal(number, item), DEFAULT_TIMEOUT);
+			Timing.waitCondition(() -> attemptWithdrawal(number, item), getDefaultTimeout());
 		}
 	}
 
@@ -72,7 +76,7 @@ public class ArkUtility {
 	private static Boolean attemptWithdrawal(int number, int[] item) {
 		if (Banking.openBank()) {
 			if (Banking.withdraw(number, item)) {
-				Timing.waitCondition(() -> getInventoryItem(item) != null, SHORT_TIMEOUT);
+				Timing.waitCondition(() -> getInventoryItem(item) != null, getShortTimeout());
 			}
 		}
 		return getInventoryItem(item) != null;
@@ -93,7 +97,7 @@ public class ArkUtility {
 	 */
 	public static void depositAllItems() {
 		if (Inventory.getAll().length > 0) {
-			Timing.waitCondition(() -> attemptDeposit(), DEFAULT_TIMEOUT);
+			Timing.waitCondition(() -> attemptDeposit(), getDefaultTimeout());
 		}
 	}
 
@@ -111,10 +115,29 @@ public class ArkUtility {
 	}
 
 	/**
-	 * Attempts to close the bank, up to a maximum of the default timeout.
+	 * Attempts to close the bank, up to a maximum of the default timeout. Will use
+	 * either thr standard way by clicking close, or by pressing escape.
+	 * 
+	 * @param useEscapeClosing Whether to press Escape to exit the bank interface
+	 *                         instead of clicking
 	 */
-	public static void closeBank() {
-		Timing.waitCondition(() -> Banking.close() && !Banking.isBankScreenOpen(), DEFAULT_TIMEOUT);
+	public static void closeBank(boolean useEscapeClosing) {
+		if (!useEscapeClosing) {
+			Timing.waitCondition(() -> Banking.close() && !Banking.isBankScreenOpen(), getDefaultTimeout());
+		} else {
+			Timing.waitCondition(() -> escapeCloseBank() && !Banking.isBankScreenOpen(), getDefaultTimeout());
+		}
+	}
+
+	/**
+	 * Closes the bank by pressing the Escape key
+	 * 
+	 * @return Whether the bank is closed
+	 */
+	private static boolean escapeCloseBank() {
+		Keyboard.sendPress(KeyEvent.CHAR_UNDEFINED, KeyEvent.VK_ESCAPE);
+		Timing.waitCondition(() -> !Banking.isBankScreenOpen(), getShortTimeout());
+		return !Banking.isBankScreenOpen();
 	}
 
 	/**
@@ -195,8 +218,7 @@ public class ArkUtility {
 			int originalCount = Inventory.find(item.getID()).length;
 
 			if (item.click(interaction)) {
-				Timing.waitCondition(() -> Inventory.find(item.getID()).length != originalCount,
-						ArkUtility.SHORT_TIMEOUT);
+				Timing.waitCondition(() -> Inventory.find(item.getID()).length != originalCount, getShortTimeout());
 				if (ArkUtility.getInventoryItem(VIAL) != null) {
 					Inventory.drop(VIAL);
 				}
@@ -226,17 +248,22 @@ public class ArkUtility {
 		RSItem currentSlotItem = slot.getItem();
 
 		// withdraw the item we need to wear
-		ArkUtility.withdrawFromBank(1, itemId);
+		int numberToWithdraw = 1;
+		if (slot == Equipment.SLOTS.ARROW) {
+			numberToWithdraw = 0;
+		}
+
+		ArkUtility.withdrawFromBank(numberToWithdraw, itemId);
 
 		if (currentSlotItem != null) {
 			// let's wait until the switch has occurred
-			Timing.waitCondition(() -> equipItem(itemId, currentSlotItem), DEFAULT_TIMEOUT);
+			Timing.waitCondition(() -> equipItem(itemId, currentSlotItem), getDefaultTimeout());
 			Timing.waitCondition(() -> getInventoryItem(new int[] { currentSlotItem.getID() }) == null
-					|| Banking.deposit(0, currentSlotItem.getID()), DEFAULT_TIMEOUT);
+					|| Banking.deposit(0, currentSlotItem.getID()), getDefaultTimeout());
 		} else {
 			// we aren't replacing the item, just adding a new item
 			if (getInventoryItem(itemId) != null && getInventoryItem(itemId).click(getEquipString(itemId))) {
-				Timing.waitCondition(() -> getEquipmentItem(itemId) != null, SHORT_TIMEOUT);
+				Timing.waitCondition(() -> getEquipmentItem(itemId) != null, getShortTimeout());
 			}
 		}
 		return getEquipmentItem(itemId) != null;
@@ -250,7 +277,7 @@ public class ArkUtility {
 	public static Boolean equipItem(int[] itemId, RSItem currentSlotItem) {
 		if (ArkUtility.getInventoryItem(itemId) != null
 				&& ArkUtility.getInventoryItem(itemId).click(getEquipString(itemId))) {
-			Timing.waitCondition(() -> getEquipmentItem(itemId) != null, SHORT_TIMEOUT);
+			Timing.waitCondition(() -> getEquipmentItem(itemId) != null, getShortTimeout());
 		}
 		return ArkUtility.getInventoryItem(new int[] { currentSlotItem.getID() }) != null;
 	}
@@ -263,10 +290,10 @@ public class ArkUtility {
 	 */
 	static String getEquipString(int[] itemId) {
 		String actionWord = "";
-		if (ArkUtility.getEquipmentItem(itemId) != null) {
+		if (ArkUtility.getInventoryItem(itemId) != null) {
 			String[] allActionsAvailable = ArkUtility.getInventoryItem(itemId).getDefinition().getActions();
 			for (String s : allActionsAvailable) {
-				if (s.equals("Wear") || s.equals("Wield")) {
+				if (s.equals("Wear") || s.equals("Wield") || s.equals("Equip")) {
 					actionWord = s;
 				}
 			}
@@ -281,8 +308,8 @@ public class ArkUtility {
 	 * @param animationID The animation ID to wait for
 	 */
 	public static void waitForAnimationToEnd(int animationID) {
-		Timing.waitCondition(() -> Player.getAnimation() != IDLE_ANIMATION, SHORT_TIMEOUT);
-		Timing.waitCondition(() -> Player.getAnimation() != animationID, DEFAULT_TIMEOUT);
+		Timing.waitCondition(() -> Player.getAnimation() != IDLE_ANIMATION, getShortTimeout());
+		Timing.waitCondition(() -> Player.getAnimation() != animationID, getDefaultTimeout());
 		General.sleep(400, 600);
 	}
 
@@ -292,8 +319,8 @@ public class ArkUtility {
 	 * 
 	 */
 	public static void waitForWalkTo() {
-		Timing.waitCondition(() -> Player.isMoving(), SHORT_TIMEOUT);
-		Timing.waitCondition(() -> !Player.isMoving(), MEDIUM_TIMEOUT);
+		Timing.waitCondition(() -> Player.isMoving(), getShortTimeout());
+		Timing.waitCondition(() -> !Player.isMoving(), getLongTimeout());
 		General.sleep(400, 600);
 	}
 
@@ -348,7 +375,9 @@ public class ArkUtility {
 	public static Boolean attemptToGetEntityOnScreen(RSModel entity) {
 		if (entity != null && !entity.isClickable()) {
 			if (entity.getPosition().distanceTo(Player.getPosition()) > 8 || !rotateToAndAngle(entity)) {
-				Walking.blindWalkTo(entity.getPosition());
+				if (!Player.isMoving()) {
+					Walking.blindWalkTo(entity.getPosition());
+				}
 			}
 		}
 		return entity != null && entity.isClickable();
@@ -610,11 +639,42 @@ public class ArkUtility {
 	 * @param minimumWait Minimum amount of time to wait
 	 * @param maximumWait Maximum amount of time to wait
 	 */
-	public static void reactionTimeWait(int multiplier, int minimumWait, int maximumWait) {
-		int waitTime = General.random((minimumWait * multiplier), (maximumWait * multiplier));
-		General.println("[Reaction Time] Waiting for " + waitTime);
+	public static void reactionTimeWait(float multiplier, int minimumWait, int maximumWait) {
+		int waitTime = General.random(Math.round(minimumWait * multiplier), Math.round(maximumWait * multiplier));
+		General.println("[Reaction Time] Randomised, reaction-time wait (Antiban)");
 		General.sleep(waitTime);
 	}
 
+	/**
+	 * Returns a randomised short timeout between 1800 and 2200 milliseconds -
+	 * designed for Timing.WaitCondition(()->booleanOperator, TIMEOUT) methods
+	 */
+	public static int getShortTimeout() {
+		return General.random(1800, 2200);
+	}
+
+	/**
+	 * Returns a randomised timeout between 3900 and 4400 milliseconds - designed
+	 * for Timing.WaitCondition(()->booleanOperator, TIMEOUT) methods
+	 */
+	public static int getDefaultTimeout() {
+		return General.random(3900, 4400);
+	}
+
+	/**
+	 * Returns a randomised medium timeout between 9500 and 10500 milliseconds -
+	 * designed for Timing.WaitCondition(()->booleanOperator, TIMEOUT) methods
+	 */
+	public static int getMediumTimeout() {
+		return General.random(9500, 10500);
+	}
+
+	/**
+	 * Returns a randomised long timeout between 19000 and 21000 seconds - designed
+	 * for Timing.WaitCondition(()->booleanOperator, TIMEOUT) methods
+	 */
+	public static int getLongTimeout() {
+		return General.random(19000, 21000);
+	}
 
 }
