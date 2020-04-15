@@ -14,7 +14,7 @@ import scripts.dax_api.api_lib.DaxWalker;
 public class BankingTask implements Task {
 
 	private ArkFishing main = ArkFishing.getInstance();
-	
+
 	@Override
 	public Priority priority() {
 		return Priority.MEDIUM;
@@ -27,38 +27,41 @@ public class BankingTask implements Task {
 
 	@Override
 	public void execute() {
-
+		
 		if (!Banking.isInBank()) {
-			
-			main.currentStatus = "Reaction time wait before Banking";
-			
-			ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT, Constants.MAXIMUM_REACTION_TIME_WAIT);
-			
 			main.currentStatus = "Travelling to Bank...";
+			main.currentStatus = "Reaction time wait before Banking...";
+
+			ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT_POST_FISHING,
+					Constants.MAXIMUM_REACTION_TIME_WAIT_POST_FISHING);
 			try {
 				DaxWalker.getInstance().walkToBank();
 			} catch (Exception e) {
-				General.println("Dax Walker said no.");
+				General.println("Dax Walker said: " + e.getMessage());
 			}
-		} else {
+
+		}
+
+		if (Banking.isInBank()) {
 			main.currentStatus = "Banking...";
-			
 			/* Calculates profit */
 			main.checkIfInventoryTotalValueChanged();
-			
+
 			if (Banking.openBank()) {
-				//Deposit all items except fishing equipment
-				Timing.waitCondition(() -> Banking.depositAllExcept(Constants.FISHING_EQUIPMENT) == 0, ArkUtility.MEDIUM_TIMEOUT);
-				
-				ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_BANKING_TIME_WAIT,
-						Constants.MAXIMUM_BANKING_TIME_WAIT);
-				
-				ArkUtility.closeBank();
-				
-				//Reset our inventory value total for profit calculations
+				// Deposit all items except fishing equipment
+				Timing.waitCondition(() -> depositedAllExcept(), ArkUtility.getDefaultTimeout());
+				ArkUtility.closeBank(false);
+				// Reset our inventory value total for profit calculations
 				main.lastInventoryValue = ArkUtility.getPriceOfInventory();
 			}
 		}
+	}
+	
+	private boolean depositedAllExcept() {
+		ArkUtility.reactionTimeWait(main.reactionWaitMultiplier,
+				Constants.MINIMUM_REACTION_TIME_WAIT_POST_DEPOSIT,
+				Constants.MAXIMUM_REACTION_TIME_WAIT_POST_DEPOSIT);
+		return Banking.depositAllExcept(Constants.FISHING_EQUIPMENT) == 0;
 	}
 
 }

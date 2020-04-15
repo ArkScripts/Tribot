@@ -1,4 +1,4 @@
-package scripts.arkscripts.fishing;
+package scripts.arkscripts.masterfarmer;
 
 import org.tribot.api2007.Game;
 import org.tribot.api2007.Options;
@@ -8,7 +8,7 @@ import scripts.api.ark.Task;
 
 public class ManageRunTask implements Task {
 
-	private ArkFishing main = ArkFishing.getInstance();
+	private ArkMasterFarmer main = ArkMasterFarmer.getInstance();
 	
 	@Override
 	public Priority priority() {
@@ -22,8 +22,8 @@ public class ManageRunTask implements Task {
 
 	@Override
 	public void execute() {
+		//turn on run
 		if (Options.setRunEnabled(true)) {
-			main.currentStatus = "Activating Run";
 			main.pctToRunAt = main.abc.generateRunActivation();
 		}
 	}

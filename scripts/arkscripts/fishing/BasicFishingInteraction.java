@@ -1,6 +1,7 @@
 package scripts.arkscripts.fishing;
 
 import org.tribot.api.Timing;
+import org.tribot.api2007.Inventory;
 import org.tribot.api2007.NPCChat;
 import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Player;
@@ -22,7 +23,7 @@ public class BasicFishingInteraction implements Task {
 
 	@Override
 	public boolean validate() {
-		return !isFishing() && !Player.isMoving();
+		return !isFishing() && !Player.isMoving() && !Inventory.isFull();
 	}
 
 	private Boolean isFishing() {
@@ -35,43 +36,49 @@ public class BasicFishingInteraction implements Task {
 
 	@Override
 	public void execute() {
-		
+
 		main.currentStatus = "Reaction time wait before Fishing...";
-		
-		ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT, Constants.MAXIMUM_REACTION_TIME_WAIT);
 
-		RSNPC[] ourSpot = NPCs.find(Filters.NPCs.actionsContains(main.chosenFishingModel.getInteractionString()));
+		ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT_POST_FISHING,
+				Constants.MAXIMUM_REACTION_TIME_WAIT_POST_FISHING);
 
-		if (ourSpot.length > 0) {
+		RSNPC[] ourPotentialSpots = NPCs
+				.findNearest(Filters.NPCs.actionsContains(main.chosenFishingModel.getInteractionString()));
 
-			// Determine the interaction string to use on this spot
-			String interactionStringToUse = "";
-			for (String action : ourSpot[0].getActions()) {
-				for (String interactionOptions : main.chosenFishingModel.getInteractionString()) {
-					if (action.equals(interactionOptions)) {
-						interactionStringToUse = action;
-						break;
+		if (ourPotentialSpots.length > 0) {
+
+			RSNPC ourSpot = ourPotentialSpots[0];
+
+			if (ourSpot != null) {
+				// Determine the interaction string to use on this spot
+				String interactionStringToUse = "";
+				for (String action : ourSpot.getActions()) {
+					for (String interactionOptions : main.chosenFishingModel.getInteractionString()) {
+						if (action.equals(interactionOptions)) {
+							interactionStringToUse = action;
+							break;
+						}
 					}
 				}
-			}
 
-			main.currentStatus = "Interacting with fishing spot";
+				main.currentStatus = "Interacting with fishing spot";
 
-			if (ArkUtility.interactWithEntity(ourSpot[0], interactionStringToUse)) {
-				// Waits until our animation is a fishing animation
-				Timing.waitCondition(
-						() -> ArkUtility.arrayContainsInt(Constants.FISHING_ANIMATIONS, Player.getAnimation()),
-						ArkUtility.SHORT_TIMEOUT);
+				if (ourSpot != null && ArkUtility.interactWithEntity(ourSpot, interactionStringToUse)) {
+					// Waits until our animation is a fishing animation
+					Timing.waitCondition(
+							() -> ArkUtility.arrayContainsInt(Constants.FISHING_ANIMATIONS, Player.getAnimation()),
+							ArkUtility.getDefaultTimeout());
 
-				if (ArkUtility.arrayContainsInt(Constants.FISHING_ANIMATIONS, Player.getAnimation())) {
-					// Add this tile to our list of potential tiles to return to if we lose
-					// ourselves and can't find any more fish
-					if (!main.fishingTilesIveBeenTo.contains(Player.getPosition())) {
-						main.fishingTilesIveBeenTo.add(Player.getPosition());
+					if (ArkUtility.arrayContainsInt(Constants.FISHING_ANIMATIONS, Player.getAnimation())) {
+						// Add this tile to our list of potential tiles to return to if we lose
+						// ourselves and can't find any more fish
+						if (!main.fishingTilesIveBeenTo.contains(Player.getPosition())) {
+							main.fishingTilesIveBeenTo.add(Player.getPosition());
+						}
+						main.currentStatus = "Fishing";
 					}
-					main.currentStatus = "Fishing";
-				}
 
+				}
 			}
 
 		} else {

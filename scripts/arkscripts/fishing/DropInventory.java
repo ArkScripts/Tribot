@@ -26,11 +26,11 @@ public class DropInventory implements Task {
 		
 		main.currentStatus = "Reaction time wait before Dropping...";
 		
-		ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT, Constants.MAXIMUM_REACTION_TIME_WAIT);
+		ArkUtility.reactionTimeWait(main.reactionWaitMultiplier, Constants.MINIMUM_REACTION_TIME_WAIT_POST_FISHING, Constants.MAXIMUM_REACTION_TIME_WAIT_POST_FISHING);
 		
 		main.currentStatus = "Dropping our Inventory";
 		
-		Timing.waitCondition(() -> Inventory.dropAllExcept(Constants.FISHING_EQUIPMENT) == 0, ArkUtility.LONG_TIMEOUT);
+		Timing.waitCondition(() -> Inventory.dropAllExcept(Constants.FISHING_EQUIPMENT) == 0, ArkUtility.getLongTimeout());
 		
 	}
 	

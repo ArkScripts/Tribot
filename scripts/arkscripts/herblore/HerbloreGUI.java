@@ -39,6 +39,8 @@ public class HerbloreGUI {
 	private static JCheckBox useAmuletOfChemistryCheck;
 	private static JButton startButton;
 	private static JSlider reactionTimeSlider;
+	
+	private static JCheckBox useEscapeExitCheckbox;
 
 	private static JTabbedPane tabbedPane;
 	
@@ -78,6 +80,9 @@ public class HerbloreGUI {
 			prop.clear();
 
 			prop.put("useAmuletOfChemistryCheck", String.valueOf(useAmuletOfChemistryCheck.isSelected()));
+			prop.put("useAmuletOfChemistryCheck", String.valueOf(useAmuletOfChemistryCheck.isSelected()));
+			
+			prop.put("useEscapeExitCheckbox", String.valueOf(useEscapeExitCheckbox.isSelected()));
 
 			prop.put("txtIngredientOne", txtIngredientOne.getText());
 			prop.put("txtIngredientTwo", txtIngredientTwo.getText());
@@ -98,16 +103,17 @@ public class HerbloreGUI {
 			if (!HerbloreGUI.PATH.exists()) { // make sure file exists
 				General.println("[GUI Loading] Settings path doesn't exist");
 				HerbloreGUI.PATH.createNewFile(); // or make a new one
-				
 				reactionTimeSlider.setValue(2);
 			}
 				prop.load(new FileInputStream(HerbloreGUI.PATH));
 
-				String[] checkBoxNames = { "useAmuletOfChemistryCheck"};
-				JCheckBox[] boxes = { useAmuletOfChemistryCheck};
+				String[] checkBoxNames = { "useAmuletOfChemistryCheck", "useEscapeExitCheckbox"};
+				JCheckBox[] boxes = { useAmuletOfChemistryCheck, useEscapeExitCheckbox};
 				for (int i = 0; i < checkBoxNames.length; i++) {
 					String value = prop.getProperty(checkBoxNames[i]);
-					boxes[i].setSelected(Boolean.valueOf(value));
+					if(value != null) {
+						boxes[i].setSelected(Boolean.valueOf(value));
+					}
 				}
 
 				String[] textFieldNames = { "txtIngredientOne", "txtIngredientTwo", "herbIDField" };
@@ -137,32 +143,32 @@ public class HerbloreGUI {
 	private void initialize() throws MalformedURLException, IOException {
 		frmArkherbloreAio = new JFrame();
 		frmArkherbloreAio.setTitle("ARKHerblore AIO");
-		frmArkherbloreAio.setBounds(100, 100, 450, 493);
+		frmArkherbloreAio.setBounds(100, 100, 492, 514);
 		frmArkherbloreAio.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmArkherbloreAio.getContentPane().setLayout(null);
 
 		JPanel panel = new JPanel();
-		panel.setBounds(10, 11, 414, 432);
+		panel.setBounds(10, 11, 456, 453);
 		frmArkherbloreAio.getContentPane().add(panel);
 		panel.setLayout(null);
 
 		JLabel welcomeLabel = new JLabel("<html><b>Welcome to ARKHerblore by Marcusihno</b></html>");
-		welcomeLabel.setBounds(39, 77, 322, 14);
+		welcomeLabel.setBounds(10, 68, 436, 14);
 		panel.add(welcomeLabel);
 		welcomeLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
 		JLabel modeLabel = new JLabel("Choose a mode and then enter the ingredient ID/s.");
-		modeLabel.setBounds(0, 93, 404, 23);
+		modeLabel.setBounds(0, 93, 456, 23);
 		modeLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(modeLabel);
 
 		JLabel idInstructionLabel = new JLabel("These can be seen by going to \"Debug\" and then \"Inventory\". ");
-		idInstructionLabel.setBounds(0, 111, 414, 30);
+		idInstructionLabel.setBounds(0, 111, 456, 30);
 		idInstructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		panel.add(idInstructionLabel);
 
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(10, 152, 394, 136);
+		tabbedPane.setBounds(10, 152, 216, 164);
 		panel.add(tabbedPane);
 
 		JPanel potMixingPanel = new JPanel();
@@ -184,15 +190,15 @@ public class HerbloreGUI {
 		JLabel lblIngredientOne = new JLabel("Ingredient One ID");
 		lblIngredientOne.setBounds(11, 10, 95, 14);
 		potMixingPanel.add(lblIngredientOne);
-		lblIngredientOne.setHorizontalAlignment(SwingConstants.CENTER);
+		lblIngredientOne.setHorizontalAlignment(SwingConstants.LEFT);
 
 		JLabel lblIngredientTwo = new JLabel("Ingredient Two ID");
 		lblIngredientTwo.setBounds(10, 50, 95, 14);
 		potMixingPanel.add(lblIngredientTwo);
-		lblIngredientTwo.setHorizontalAlignment(SwingConstants.CENTER);
+		lblIngredientTwo.setHorizontalAlignment(SwingConstants.LEFT);
 
-		useAmuletOfChemistryCheck = new JCheckBox("Use Amulet of Chemistry");
-		useAmuletOfChemistryCheck.setBounds(151, 20, 160, 51);
+		useAmuletOfChemistryCheck = new JCheckBox("Use Amulets of Chemistry");
+		useAmuletOfChemistryCheck.setBounds(10, 92, 195, 31);
 		potMixingPanel.add(useAmuletOfChemistryCheck);
 
 		JPanel herbCleaningPanel = new JPanel();
@@ -200,12 +206,12 @@ public class HerbloreGUI {
 		herbCleaningPanel.setLayout(null);
 
 		JLabel lblHerbId = new JLabel("Herb ID");
-		lblHerbId.setBounds(0, 22, 113, 23);
+		lblHerbId.setBounds(10, 11, 113, 23);
 		herbCleaningPanel.add(lblHerbId);
-		lblHerbId.setHorizontalAlignment(SwingConstants.CENTER);
+		lblHerbId.setHorizontalAlignment(SwingConstants.LEFT);
 
 		herbIDField = new JTextField();
-		herbIDField.setBounds(10, 41, 96, 20);
+		herbIDField.setBounds(10, 33, 96, 20);
 		herbCleaningPanel.add(herbIDField);
 		herbIDField.setColumns(10);
 		
@@ -215,33 +221,50 @@ public class HerbloreGUI {
 		
 		JLabel iconLabel = new JLabel("");
 		iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		iconLabel.setBounds(10, 0, 394, 62);
+		iconLabel.setBounds(10, 0, 436, 62);
 		iconLabel.setIcon(icon);
 		panel.add(iconLabel);
 		
 		reactionTimeSlider = new JSlider();
-		reactionTimeSlider.setValue(2);
+		reactionTimeSlider.setMajorTickSpacing(2);
 		reactionTimeSlider.setSnapToTicks(true);
 		reactionTimeSlider.setPaintTicks(true);
-		reactionTimeSlider.setMaximum(4);
-		reactionTimeSlider.setMinimum(0);
-		reactionTimeSlider.setBounds(104, 348, 200, 26);
+		reactionTimeSlider.setValue(10);
+		reactionTimeSlider.setMaximum(20);
+		reactionTimeSlider.setBounds(125, 377, 200, 26);
 		panel.add(reactionTimeSlider);
 		
 		JLabel lblNewLabel = new JLabel("<html><b>Reaction Time:</b><html>");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setBounds(104, 298, 200, 14);
+		lblNewLabel.setBounds(125, 327, 200, 14);
 		panel.add(lblNewLabel);
 		
 		JLabel lblleftFaster = new JLabel("(Left = Faster | Right = Slower)");
 		lblleftFaster.setHorizontalAlignment(SwingConstants.CENTER);
-		lblleftFaster.setBounds(104, 323, 200, 14);
+		lblleftFaster.setBounds(125, 352, 200, 14);
 		panel.add(lblleftFaster);
+		
+		useEscapeExitCheckbox = new JCheckBox("Press Escape to close bank interface");
+		useEscapeExitCheckbox.setBounds(232, 179, 224, 23);
+		panel.add(useEscapeExitCheckbox);
+		
+		JLabel lblNewLabel_1 = new JLabel("<html><b>Please note:</b> If using esc closing, you must have setup your OSRS settings (\"Settings\" -> \"F-keys\" -> \"Esc to close interfaces\")</html>");
+		lblNewLabel_1.setBounds(236, 205, 210, 77);
+		panel.add(lblNewLabel_1);
+		
+		JLabel lblNewLabel_2 = new JLabel("<html><b>General Settings</b></html>");
+		lblNewLabel_2.setBounds(236, 158, 136, 14);
+		panel.add(lblNewLabel_2);
+		
+		JCheckBox chckbxGrandExchangeRestocking = new JCheckBox("Grand Exchange Restocking (Soon!)");
+		chckbxGrandExchangeRestocking.setEnabled(false);
+		chckbxGrandExchangeRestocking.setBounds(232, 279, 224, 31);
+		panel.add(chckbxGrandExchangeRestocking);
 		
 		loadSettings();
 
 		startButton = new JButton("Start!");
-		startButton.setBounds(10, 393, 394, 28);
+		startButton.setBounds(10, 414, 436, 28);
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -249,13 +272,12 @@ public class HerbloreGUI {
 			}
 		});
 		panel.add(startButton);
-	
 		
 	}
 
 	public static void startScript() {
 		ArkHerblore main = ArkHerblore.getInstance();
-		
+		General.println("[Welcome] Welcome to ARKHerblore Pro by Marcusihno. If you have any feedback, please leave it on my script thread! Enjoy!");
 		if (tabbedPane.getSelectedIndex() == 0) {
 			//potion making tab
 			//must check if the user has entered an ingredient ID for both fields, that is also a numerical value
@@ -264,11 +286,12 @@ public class HerbloreGUI {
 				startButton.getModel().setPressed(false);
 			} else {
 				saveSettings();
-				General.println("Starting Potions Task");
+				General.println("[Task Management] Starting Potions Task");
 				main.useAmuletOfChemistry = useAmuletOfChemistryCheck.getModel().isSelected();
 				main.ingredientOne = new int[] { Integer.parseInt(txtIngredientOne.getText()) };
 				main.ingredientTwo = new int[] { Integer.parseInt(txtIngredientTwo.getText()) };
-				main.reactionTimeMultiplier = reactionTimeSlider.getValue();
+				main.useEscapeExitBanking = useEscapeExitCheckbox.getModel().isSelected();
+				main.reactionTimeMultiplier = ((float)reactionTimeSlider.getValue())/10;
 				frmArkherbloreAio.setVisible(false);
 				// set the tasks to carry out
 				ArkHerblore.getInstance().lastInventoryValue = ArkUtility.getPriceOfInventory();
@@ -283,9 +306,10 @@ public class HerbloreGUI {
 				startButton.getModel().setPressed(false);
 			} else {
 				saveSettings();
-				General.println("Starting Herb Task");
+				General.println("[Task Management] Starting Herb Task");
 				main.ingredientOne = new int[] { Integer.parseInt(herbIDField.getText()) };
-				main.reactionTimeMultiplier = reactionTimeSlider.getValue();
+				main.reactionTimeMultiplier = ((float)reactionTimeSlider.getValue())/10;
+				main.useEscapeExitBanking = useEscapeExitCheckbox.getModel().isSelected();
 				frmArkherbloreAio.setVisible(false);
 				// set the tasks to carry out
 				main.lastInventoryValue = ArkUtility.getPriceOfInventory();

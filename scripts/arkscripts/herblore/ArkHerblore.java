@@ -29,7 +29,7 @@ import scripts.api.ark.Task;
 import scripts.api.ark.TaskSet;
 
 @ScriptManifest(authors = {
-		"Marcusihno" }, category = "Herblore", name = "ArkHerblore AIO", version = 1.2, description = "Fast, safe Herblore trainer with Necklace of Chemistry support. ABC2/10 compliant.", gameMode = 1)
+		"Marcusihno" }, category = "Herblore", name = "ARKHerblore", version = 1.23, description = "Fast, safe Herblore trainer with Necklace of Chemistry support. ABC2/10 compliant.", gameMode = 1)
 
 public class ArkHerblore extends Script implements Starting, Painting, MessageListening07, MousePainting {
 
@@ -40,10 +40,11 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 	public int lastInventoryValue = 0;
 
 	// GUI-set variables
-	public int[] ingredientOne = new int[] {};
-	public int[] ingredientTwo = new int[] {};
+	public int[] ingredientOne;
+	public int[] ingredientTwo;
 	public boolean useAmuletOfChemistry = false;
-	public int reactionTimeMultiplier = 2;
+	public float reactionTimeMultiplier = 1;
+	public boolean useEscapeExitBanking = false;
 
 	public ABCUtil abc;
 
@@ -81,23 +82,23 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 
 		while (runScript) {
 			if (guiEnded) {
-				// using Encoded's task framework
+				// Using Encoded's task framework
 				Task task = tasks.getValidTask();
 				if (task != null) {
 					task.execute();
-				} else {
-					// when resting, we should check our abc2 status
-					abcCheck();
 				}
 
-				// if we get an increase in xp, add a successful count and reset our idle timer
+				// When resting, we should check our abc2 status
+				abcCheck();
+				
+				// If we get an increase in xp, add a successful count and reset our idle timer
 				if (SKILLS.HERBLORE.getXP() > lastXPCount) {
 					timesSucceeded++;
 					lastXPCount = SKILLS.HERBLORE.getXP();
 					lastActivityTime = System.currentTimeMillis();
 				}
 
-				// another easy way of resetting our idle timer - useful when mixing unfinished
+				// Another easy way of resetting our idle timer - useful when mixing unfinished
 				// potions which do not give xp
 				if (Player.getAnimation() != Constants.IDLE_ANIMATION) {
 					lastActivityTime = System.currentTimeMillis();
@@ -111,7 +112,7 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 	}
 
 	public void checkIfInventoryTotalValueChanged() {
-		// checks if our inventory total value has gone up or down for profit
+		// Checks if our inventory total value has gone up or down for profit
 		// calculation
 		int priceOfInventory = ArkUtility.getPriceOfInventory();
 		totalProfitOrLoss += (priceOfInventory - lastInventoryValue);
@@ -119,6 +120,12 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 	}
 
 	public void abcCheck() {
+		if (abc.shouldLeaveGame()) {
+			currentStatus = "ABC2: Leaving client screen";
+			General.println("[Antiban] ABC2: Leaving client screen");
+			abc.leaveGame();
+		}
+		
 		if (abc.shouldCheckTabs()) {
 			currentStatus = "ABC2: Checking Tabs";
 			General.println("[Antiban] ABC2: Checking Tabs");
@@ -126,45 +133,39 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 		}
 
 		if (abc.shouldCheckXP()) {
-			abc.checkXP();
 			currentStatus = "ABC2: Checking XP";
 			General.println("[Antiban] ABC2: Checking XP");
+			abc.checkXP();
 		}
 
 		if (abc.shouldExamineEntity()) {
-			abc.examineEntity();
 			currentStatus = "ABC2: Examining Entities";
 			General.println("[Antiban] ABC2: Examining Entities");
+			abc.examineEntity();
 		}
 
 		if (abc.shouldMoveMouse()) {
-			abc.moveMouse();
 			currentStatus = "ABC2: Randomly moving mouse";
 			General.println("[Antiban] ABC2: Randomly moving mouse");
+			abc.moveMouse();
 		}
 
 		if (abc.shouldPickupMouse()) {
-			abc.pickupMouse();
 			currentStatus = "ABC2: Picking up mouse";
 			General.println("[Antiban] ABC2: Picking up mouse");
+			abc.pickupMouse();
 		}
 
 		if (abc.shouldRightClick()) {
-			abc.rightClick();
 			currentStatus = "ABC2: Right clicking";
 			General.println("[Antiban] ABC2: Right clicking");
+			abc.rightClick();
 		}
 
 		if (abc.shouldRotateCamera()) {
-			abc.rotateCamera();
 			currentStatus = "ABC2: Rotating camera";
 			General.println("[Antiban] ABC2: Rotating camera");
-		}
-
-		if (abc.shouldLeaveGame()) {
-			abc.leaveGame();
-			currentStatus = "ABC2: Leaving client screen";
-			General.println("[Antiban] ABC2: Leaving client screen");
+			abc.rotateCamera();
 		}
 	}
 
@@ -190,7 +191,7 @@ public class ArkHerblore extends Script implements Starting, Painting, MessageLi
 		return null;
 	}
 
-	//Images temporarily removed
+	// Images temporarily removed
 	final Image paintBg = getImage("");
 
 	final Image logo = getImage("");

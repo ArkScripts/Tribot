@@ -42,8 +42,8 @@ public class CleanHerbsTask implements Task {
 						int randomNumber = General.random(0, RANDOM_HERB_MISS_MAX_INT);
 						if (randomNumber != RANDOM_HERB_MISS_MAX_INT) {
 							if (herb.click("Clean")) {
-								General.sleep((Constants.MINIMUM_WAIT_HERB_CLEAN * main.reactionTimeMultiplier),
-										(Constants.MAXIMUM_WAIT_HERB_CLEAN * main.reactionTimeMultiplier));
+								General.sleep(Math.round(Constants.MINIMUM_WAIT_HERB_CLEAN * main.reactionTimeMultiplier),
+										Math.round(Constants.MAXIMUM_WAIT_HERB_CLEAN * main.reactionTimeMultiplier));
 								main.timesSucceeded++;
 								main.abcCheck();
 							}

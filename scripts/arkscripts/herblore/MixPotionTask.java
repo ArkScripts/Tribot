@@ -6,6 +6,7 @@ import org.tribot.api.input.Keyboard;
 import org.tribot.api2007.Banking;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
+import org.tribot.api2007.types.RSInterface;
 import org.tribot.api2007.types.RSItem;
 
 import scripts.api.ark.ArkUtility;
@@ -35,17 +36,28 @@ public class MixPotionTask implements Task {
 			// gets the last of the ingredient 1 items to mix with the first of the
 			// ingredient 2 items in the inventory - more efficient
 			RSItem[] allIngredientOne = Inventory.find(main.ingredientOne);
-			if (allIngredientOne.length > 0) {
-				allIngredientOne[allIngredientOne.length - 1].click("Use");
+			
+			RSItem lastIngredientOneInInv = null;
+			
+			if(allIngredientOne.length > 0) {
+				lastIngredientOneInInv = allIngredientOne[allIngredientOne.length - 1];
 			}
-			// need to null check ingredient 1 as well as 2
-			if (ArkUtility.getInventoryItem(main.ingredientOne) != null
-					&& ArkUtility.getInventoryItem(main.ingredientTwo) != null) {
-				if (ArkUtility.getInventoryItem(main.ingredientTwo).click("Use")) {
+
+			if (lastIngredientOneInInv != null) {
+				lastIngredientOneInInv.click("Use");
+			}
+			
+			RSItem ingredientTwoInInv = ArkUtility.getInventoryItem(main.ingredientTwo);
+			
+			if (ingredientTwoInInv != null) {
+				if (ingredientTwoInInv.click("Use")) {
+					
 					// wait for the make all interface, up to 2 seconds
-					Timing.waitCondition(() -> Interfaces.get(Constants.MAKE_ALL_INTERFACE) != null, ArkUtility.SHORT_TIMEOUT);
-					if (Interfaces.get(Constants.MAKE_ALL_INTERFACE) != null) {
-						//only do this wait and press the key if the interface is there, not if just the timer timed out
+					Timing.waitCondition(() -> ArkUtility.getMainInterface(Constants.MAKE_ALL_INTERFACE) != null && !ArkUtility.getMainInterface(Constants.MAKE_ALL_INTERFACE).isHidden(), ArkUtility.getShortTimeout());
+					
+					RSInterface makeAllInterface = ArkUtility.getMainInterface(Constants.MAKE_ALL_INTERFACE);
+					if (makeAllInterface != null && !makeAllInterface.isHidden()) {
+						//Only do this wait and press the key if the interface is there, not just if the timer timed out
 						main.currentStatus = "Reaction time wait";
 						// wait a very short, randomised amount of time
 						ArkUtility.reactionTimeWait(main.reactionTimeMultiplier, Constants.MINIMUM_WAIT_ACCEPT_INTERFACE, Constants.MAXIMUM_WAIT_ACCEPT_INTERFACE);

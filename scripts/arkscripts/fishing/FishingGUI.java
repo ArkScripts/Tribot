@@ -114,7 +114,7 @@ public class FishingGUI {
 			
 			modeChoiceComboBox.setSelectedItem(prop.getProperty("modeChoiceComboBox"));
 			
-			reactionTimeSlider.setValue(2);
+			reactionTimeSlider.setValue(10);
 
 		} catch (Exception e2) {
 			System.out.print("Unable to load settings");
@@ -170,7 +170,7 @@ public class FishingGUI {
 		modeChoiceLabel.setBounds(10, 11, 106, 20);
 		mainPanel.add(modeChoiceLabel);
 		
-		modeChoiceComboBox = new JComboBox<String>(modes);
+		modeChoiceComboBox = new JComboBox(modes);
 		modeChoiceComboBox.setBounds(10, 41, 374, 22);
 		mainPanel.add(modeChoiceComboBox);
 		
@@ -186,25 +186,26 @@ public class FishingGUI {
 		mainPanel.add(bankingRadioButton);
 		
 		reactionTimeSlider = new JSlider();
+		reactionTimeSlider.setMajorTickSpacing(2);
 		reactionTimeSlider.setPaintTicks(true);
 		reactionTimeSlider.setSnapToTicks(true);
-		reactionTimeSlider.setMaximum(4);
+		reactionTimeSlider.setMaximum(20);
 		reactionTimeSlider.setMinimum(0);
-		reactionTimeSlider.setBounds(194, 136, 190, 26);
+		reactionTimeSlider.setBounds(194, 119, 190, 26);
 		mainPanel.add(reactionTimeSlider);
 		
-		JLabel lblNewLabel_1 = new JLabel("<html><b>Reaction Time</b><html>");
+		JLabel lblNewLabel_1 = new JLabel("<html><b>Reaction Times</b><html>");
 		lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel_1.setBounds(194, 86, 190, 14);
+		lblNewLabel_1.setBounds(194, 74, 190, 14);
 		mainPanel.add(lblNewLabel_1);
 		
 		JLabel lblLeftFaster = new JLabel("(Left = Faster | Right = Slower)");
 		lblLeftFaster.setHorizontalAlignment(SwingConstants.CENTER);
-		lblLeftFaster.setBounds(194, 105, 190, 20);
+		lblLeftFaster.setBounds(194, 93, 190, 20);
 		mainPanel.add(lblLeftFaster);
 		
 		JLabel lblNewLabel = new JLabel("What should we do with the fish?");
-		lblNewLabel.setBounds(10, 86, 164, 14);
+		lblNewLabel.setBounds(10, 83, 164, 14);
 		mainPanel.add(lblNewLabel);
 		
 		loadSettings();
@@ -261,7 +262,7 @@ public class FishingGUI {
 			//Banking Tasks
 			main.tasks = new TaskSet(new BasicFishingInteraction(), new BankingTask(), new NavigateBackToFishingSpot(), new ManageRunTask());
 		}
-		main.reactionWaitMultiplier = reactionTimeSlider.getValue();
+		main.reactionWaitMultiplier = ((float)reactionTimeSlider.getValue())/10;
 		main.lastInventoryValue = ArkUtility.getPriceOfInventory();
 		main.fishingTilesIveBeenTo.add(Player.getPosition());
 		main.currentStatus = "Script started!";

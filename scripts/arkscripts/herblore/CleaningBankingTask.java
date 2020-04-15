@@ -35,21 +35,21 @@ public class CleaningBankingTask implements Task {
 		main.currentStatus = "Banking...";
 		main.checkIfInventoryTotalValueChanged();
 
-		// open the bank
+		// Open the bank
 		if (Banking.openBank()) {
-			// deposit items if we need to (this method checks if needed and then does it)
+			// Deposit items if we need to (this method checks if needed and then does it)
 			ArkUtility.depositAllItems();
 
 			main.currentStatus = "Withdrawing Ingredients";
 
 			if (Banking.find(main.ingredientOne).length == 0) {
-				General.println("We ran out of Ingredients.");
+				General.println("[End Case] We ran out of Ingredients.");
 				main.runScript = false;
 			} else {
 				ArkUtility.withdrawFromBank(0, main.ingredientOne);
 			}
 			ArkHerblore.getInstance().lastInventoryValue = ArkUtility.getPriceOfInventory();
-			ArkUtility.closeBank();
+			ArkUtility.closeBank(main.useEscapeExitBanking);
 			main.abcCheck();
 		}
 	}

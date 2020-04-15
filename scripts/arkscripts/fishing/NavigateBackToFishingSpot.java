@@ -35,12 +35,12 @@ public class NavigateBackToFishingSpot implements Task {
 	public void execute() {
 		RSTile selectedTile = ArkUtility.approximateNearTile(ArkUtility.getRandomTileFromList(main.fishingTilesIveBeenTo), 2);
 
-		if (Player.getPosition().distanceTo(selectedTile) > Constants.MAX_DISTANCE_FROM_KNOWN_TILE) {
+		if (selectedTile != null && Player.getPosition().distanceTo(selectedTile) > Constants.MAX_DISTANCE_FROM_KNOWN_TILE) {
 			try {
 				main.currentStatus = "Navigating back to fishing spot";
 				DaxWalker.getInstance().walkTo(selectedTile);
 			} catch (Exception e) {
-				General.println("Dax Walker wasn't happy.");
+				General.println("Dax Walker said: " + e.getMessage());
 			}
 		} else {
 			main.currentStatus = "Waiting for a fishing spot to spawn";
