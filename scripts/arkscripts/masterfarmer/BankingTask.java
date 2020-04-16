@@ -7,6 +7,7 @@ import org.tribot.api2007.Combat;
 import org.tribot.api2007.Equipment;
 import org.tribot.api2007.Inventory;
 
+import scripts.api.ark.ArkBanking;
 import scripts.api.ark.ArkUtility;
 import scripts.api.ark.Priority;
 import scripts.api.ark.Task;
@@ -60,7 +61,7 @@ public class BankingTask implements Task {
 
 			if (Banking.openBank()) {
 
-				ArkUtility.depositAllItems();
+				ArkBanking.depositAllItems();
 
 				if (main.useDodgyNecklaces && ArkUtility.getEquipmentItem(Constants.DODGY_NECKLACE_ID) == null) {
 					main.currentStatus = "Replacing Dodgy Necklace";
@@ -70,7 +71,7 @@ public class BankingTask implements Task {
 						main.runScript = false;
 					}
 					Timing.waitCondition(
-							() -> ArkUtility.replaceEquipmentItem(Equipment.SLOTS.AMULET, Constants.DODGY_NECKLACE_ID),
+							() -> ArkBanking.replaceEquipmentItem(Equipment.SLOTS.AMULET, Constants.DODGY_NECKLACE_ID),
 							ArkUtility.getMediumTimeout());
 				}
 
@@ -81,11 +82,11 @@ public class BankingTask implements Task {
 					main.runScript = false;
 				}
 
-				ArkUtility.withdrawFromBank(main.numberOfFoodToWithdrawPerTrip, main.foodID);
+				ArkBanking.withdrawFromBank(main.numberOfFoodToWithdrawPerTrip, main.foodID);
 
 				main.lastInventoryValue = ArkUtility.getPriceOfInventory();
 
-				ArkUtility.closeBank(false);
+				ArkBanking.closeBank(false);
 			}
 		}
 	}

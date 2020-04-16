@@ -85,7 +85,6 @@ public class ArkMasterFarmer extends Script implements Starting, Painting, Messa
 		currentStatus = "Initialising Web Walker";
 		WebWalkerServerApi.getInstance().setDaxCredentialsProvider(new DaxCredentialsProvider() {
 			public DaxCredentials getDaxCredentials() {
-			//Credentials removed to protect API key
 				return new DaxCredentials("", "");
 			}
 		});
@@ -205,7 +204,6 @@ public class ArkMasterFarmer extends Script implements Starting, Painting, Messa
 		return null;
 	}
 
-	//Images temporarily removed
 	final Image paintBg = getImage("");
 
 	final Image logo = getImage("");

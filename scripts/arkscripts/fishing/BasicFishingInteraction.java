@@ -8,6 +8,8 @@ import org.tribot.api2007.Player;
 import org.tribot.api2007.ext.Filters;
 import org.tribot.api2007.types.RSNPC;
 
+import scripts.api.ark.ArkBanking;
+import scripts.api.ark.ArkInteraction;
 import scripts.api.ark.ArkUtility;
 import scripts.api.ark.Priority;
 import scripts.api.ark.Task;
@@ -63,7 +65,7 @@ public class BasicFishingInteraction implements Task {
 
 				main.currentStatus = "Interacting with fishing spot";
 
-				if (ourSpot != null && ArkUtility.interactWithEntity(ourSpot, interactionStringToUse)) {
+				if (ourSpot != null && ArkInteraction.interactWithEntity(ourSpot, interactionStringToUse)) {
 					// Waits until our animation is a fishing animation
 					Timing.waitCondition(
 							() -> ArkUtility.arrayContainsInt(Constants.FISHING_ANIMATIONS, Player.getAnimation()),

@@ -3,6 +3,7 @@ package scripts.arkscripts.herblore;
 import org.tribot.api.General;
 import org.tribot.api2007.Banking;
 
+import scripts.api.ark.ArkBanking;
 import scripts.api.ark.ArkUtility;
 import scripts.api.ark.Priority;
 import scripts.api.ark.Task;
@@ -38,7 +39,7 @@ public class CleaningBankingTask implements Task {
 		// Open the bank
 		if (Banking.openBank()) {
 			// Deposit items if we need to (this method checks if needed and then does it)
-			ArkUtility.depositAllItems();
+			ArkBanking.depositAllItems();
 
 			main.currentStatus = "Withdrawing Ingredients";
 
@@ -46,10 +47,10 @@ public class CleaningBankingTask implements Task {
 				General.println("[End Case] We ran out of Ingredients.");
 				main.runScript = false;
 			} else {
-				ArkUtility.withdrawFromBank(0, main.ingredientOne);
+				ArkBanking.withdrawFromBank(0, main.ingredientOne);
 			}
 			ArkHerblore.getInstance().lastInventoryValue = ArkUtility.getPriceOfInventory();
-			ArkUtility.closeBank(main.useEscapeExitBanking);
+			ArkBanking.closeBank(main.useEscapeExitBanking);
 			main.abcCheck();
 		}
 	}

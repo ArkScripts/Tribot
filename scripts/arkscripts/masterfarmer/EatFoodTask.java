@@ -2,6 +2,7 @@ package scripts.arkscripts.masterfarmer;
 
 import org.tribot.api2007.Combat;
 
+import scripts.api.ark.ArkInteraction;
 import scripts.api.ark.ArkUtility;
 import scripts.api.ark.Priority;
 import scripts.api.ark.Task;
@@ -31,7 +32,7 @@ public class EatFoodTask implements Task {
 
 	public Boolean eatFood() {
 		main.currentStatus = "Eating Food";
-		return ArkUtility.checkForInInventoryAndInteract(main.foodID, "Eat");
+		return ArkInteraction.checkForInInventoryAndInteract(main.foodID, "Eat");
 	}
 
 }

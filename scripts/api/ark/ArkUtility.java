@@ -1,41 +1,26 @@
 package scripts.api.ark;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import org.tribot.api.General;
 import org.tribot.api.Timing;
-import org.tribot.api.input.Keyboard;
-import org.tribot.api.interfaces.Clickable;
-import org.tribot.api2007.Banking;
-import org.tribot.api2007.Camera;
 import org.tribot.api2007.Equipment;
 import org.tribot.api2007.Interfaces;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.NPCs;
 import org.tribot.api2007.Objects;
-import org.tribot.api2007.PathFinding;
 import org.tribot.api2007.Player;
-import org.tribot.api2007.Walking;
-import org.tribot.api2007.types.RSCharacter;
-import org.tribot.api2007.types.RSGroundItem;
 import org.tribot.api2007.types.RSInterface;
 import org.tribot.api2007.types.RSItem;
 import org.tribot.api2007.types.RSItemDefinition;
-import org.tribot.api2007.types.RSModel;
 import org.tribot.api2007.types.RSNPC;
 import org.tribot.api2007.types.RSObject;
-import org.tribot.api2007.types.RSObjectDefinition;
 import org.tribot.api2007.types.RSTile;
-import org.tribot.api2007.util.DPathNavigator;
 
-import scripts.dax_api.shared.helpers.RSItemHelper;
-import scripts.dax_api.walker.utils.AccurateMouse;
 import scripts.wastedbro.api.rsitem_services.GrandExchange;
 
 /**
@@ -46,99 +31,7 @@ public class ArkUtility {
 
 	public static final int IDLE_ANIMATION = -1;
 
-	private static final int[] VIAL = { 229 };
-
 	private static final char[] c = new char[] { 'k', 'm', 'b', 't' };
-	
-	private static int minTimeToWaitToGoOffScreen;
-	private static long lastOffScreen;
-
-	private static DPathNavigator navigator = new DPathNavigator();
-
-	/**
-	 * Attempts to withdraw this item for a maximum of the default timeout.
-	 * 
-	 * @param number The number to withdraw
-	 * @param item   The id/s of the item to withdraw
-	 */
-	public static void withdrawFromBank(int number, int[] item) {
-		if (bankContains(item)) {
-			Timing.waitCondition(() -> attemptWithdrawal(number, item), getDefaultTimeout());
-		}
-	}
-
-	/**
-	 * Carries out a physical withdrawal. Makes sure the bank is open. Waits up to 2
-	 * seconds after a "successful" withdraw before returning.
-	 * 
-	 * @return Whether the item we are trying to withdraw is in the inventory yet.
-	 */
-	private static Boolean attemptWithdrawal(int number, int[] item) {
-		if (Banking.openBank()) {
-			if (Banking.withdraw(number, item)) {
-				Timing.waitCondition(() -> getInventoryItem(item) != null, getShortTimeout());
-			}
-		}
-		return getInventoryItem(item) != null;
-	}
-
-	/**
-	 * Checks if the bank contains this item
-	 * 
-	 * @return Whether the item is present in the bank.
-	 */
-	private static Boolean bankContains(int[] item) {
-		return Banking.find(item).length > 0;
-	}
-
-	/**
-	 * Attempts to deposit all items until the inventory is empty, up to a maximum
-	 * of the default timeout.
-	 */
-	public static void depositAllItems() {
-		if (Inventory.getAll().length > 0) {
-			Timing.waitCondition(() -> attemptDeposit(), getDefaultTimeout());
-		}
-	}
-
-	/**
-	 * Deposits all items, after making sure the bank is open
-	 * 
-	 * @return Whether the inventory is empty.
-	 */
-	private static Boolean attemptDeposit() {
-		if (Banking.openBank()) {
-			Banking.depositAll();
-			Timing.waitCondition(() -> Inventory.getAll().length == 0, General.random(800, 1000));
-		}
-		return Inventory.getAll().length == 0;
-	}
-
-	/**
-	 * Attempts to close the bank, up to a maximum of the default timeout. Will use
-	 * either thr standard way by clicking close, or by pressing escape.
-	 * 
-	 * @param useEscapeClosing Whether to press Escape to exit the bank interface
-	 *                         instead of clicking
-	 */
-	public static void closeBank(boolean useEscapeClosing) {
-		if (!useEscapeClosing) {
-			Timing.waitCondition(() -> Banking.close() && !Banking.isBankScreenOpen(), getDefaultTimeout());
-		} else {
-			Timing.waitCondition(() -> escapeCloseBank() && !Banking.isBankScreenOpen(), getDefaultTimeout());
-		}
-	}
-
-	/**
-	 * Closes the bank by pressing the Escape key
-	 * 
-	 * @return Whether the bank is closed
-	 */
-	private static boolean escapeCloseBank() {
-		Keyboard.sendPress(KeyEvent.CHAR_UNDEFINED, KeyEvent.VK_ESCAPE);
-		Timing.waitCondition(() -> !Banking.isBankScreenOpen(), getShortTimeout());
-		return !Banking.isBankScreenOpen();
-	}
 
 	/**
 	 * Gets the first RSItem found in the inventory and returns it.
@@ -200,87 +93,7 @@ public class ArkUtility {
 		}
 	}
 
-	/**
-	 * Interacts with an item in our inventory using the defined interaction string.
-	 * Also drops any vials left behind after the interaction is complete.
-	 * 
-	 * @param lookingForID The ID of the item to interact with - will interact with
-	 *                     the first item found
-	 * @param interaction  The interaction string to use
-	 * @return If we successfully carried out the interaction required.
-	 */
-	public static Boolean checkForInInventoryAndInteract(int[] lookingForID, String interaction) {
-
-		RSItem item = ArkUtility.getInventoryItem(lookingForID);
-
-		if (item != null) {
-
-			int originalCount = Inventory.find(item.getID()).length;
-
-			if (item.click(interaction)) {
-				Timing.waitCondition(() -> Inventory.find(item.getID()).length != originalCount, getShortTimeout());
-				if (ArkUtility.getInventoryItem(VIAL) != null) {
-					Inventory.drop(VIAL);
-				}
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Happens in bank screen. Withdraws the required item, then interacts with it
-	 * to replace it with the item currently in that item's worn equipment slot
-	 * (while still in banking screen).
-	 * 
-	 * @param slot        The slot of the item to replace
-	 * @param interaction The item to replace it with
-	 * @return If we successfully switched out the items - based on whether the new
-	 *         item is now present in the equipment slot.
-	 */
-	public static Boolean replaceEquipmentItem(Equipment.SLOTS slot, int[] itemId) {
-
-		if (getEquipmentItem(itemId) != null) {
-			return true;
-		}
-
-		RSItem currentSlotItem = slot.getItem();
-
-		// withdraw the item we need to wear
-		int numberToWithdraw = 1;
-		if (slot == Equipment.SLOTS.ARROW) {
-			numberToWithdraw = 0;
-		}
-
-		ArkUtility.withdrawFromBank(numberToWithdraw, itemId);
-
-		if (currentSlotItem != null) {
-			// let's wait until the switch has occurred
-			Timing.waitCondition(() -> equipItem(itemId, currentSlotItem), getDefaultTimeout());
-			Timing.waitCondition(() -> getInventoryItem(new int[] { currentSlotItem.getID() }) == null
-					|| Banking.deposit(0, currentSlotItem.getID()), getDefaultTimeout());
-		} else {
-			// we aren't replacing the item, just adding a new item
-			if (getInventoryItem(itemId) != null && getInventoryItem(itemId).click(getEquipString(itemId))) {
-				Timing.waitCondition(() -> getEquipmentItem(itemId) != null, getShortTimeout());
-			}
-		}
-		return getEquipmentItem(itemId) != null;
-	}
-
-	/**
-	 * Equips an item and checks if it succeeded.
-	 * 
-	 * @return The equipped item is now present in the equipment slot.
-	 */
-	public static Boolean equipItem(int[] itemId, RSItem currentSlotItem) {
-		if (ArkUtility.getInventoryItem(itemId) != null
-				&& ArkUtility.getInventoryItem(itemId).click(getEquipString(itemId))) {
-			Timing.waitCondition(() -> getEquipmentItem(itemId) != null, getShortTimeout());
-		}
-		return ArkUtility.getInventoryItem(new int[] { currentSlotItem.getID() }) != null;
-	}
+	
 
 	/**
 	 * Gets the interaction strings for the itemId and returns if any of them
@@ -324,103 +137,6 @@ public class ArkUtility {
 		General.sleep(400, 600);
 	}
 
-	/**
-	 * Rotates to the required RSModel and attempts to make sure it is on screen.
-	 * Checks it successful and returns
-	 * 
-	 * @param target The NPC to look at
-	 * @return Whether the target Model is clickable (aka, on screen and
-	 *         interactable)
-	 */
-	public static Boolean rotateToAndAngle(RSModel target) {
-		if (target != null && !target.isClickable()) {
-			Camera.turnToTile(target);
-			// If still not on screen
-			if (target != null && !target.isClickable()) {
-				int angle = Camera.getOptimalAngleForPositionable(target);
-				Camera.setCameraAngle(angle);
-			}
-		}
-
-		return target != null && target.isClickable();
-	}
-
-	/**
-	 * Checks that the RSModel we are trying to reach is able to be reached and
-	 * attempts to reach it if not possible using DPathNavigator's travers (which
-	 * handles doors)
-	 * 
-	 * @param entity The target Model to reach
-	 * @return Whether the target model has been made reachable
-	 */
-	public static Boolean makeSureWeCanReachEntity(RSModel entity) {
-
-		RSTile tileNearEntity = approximateNearTile(entity.getPosition(), 1);
-		if (entity != null && !PathFinding.canReach(tileNearEntity, true)) {
-			if (navigator.traverse(tileNearEntity)) {
-				ArkUtility.waitForWalkTo();
-			}
-		}
-		return entity != null && PathFinding.canReach(tileNearEntity, true);
-	}
-
-	/**
-	 * If more than 8 spaces away, will attempt to walk to the target to get it on
-	 * screen. If closer, it will call rotateToAndAngle, which attempts to rotate
-	 * the camera to view the target model.
-	 * 
-	 * @param entity The model we are trying to cause to be clickable
-	 * @return If the target is clickable, returns true.
-	 */
-	public static Boolean attemptToGetEntityOnScreen(RSModel entity) {
-		if (entity != null && !entity.isClickable()) {
-			if (entity.getPosition().distanceTo(Player.getPosition()) > 8 || !rotateToAndAngle(entity)) {
-				if (!Player.isMoving()) {
-					Walking.blindWalkTo(entity.getPosition());
-				}
-			}
-		}
-		return entity != null && entity.isClickable();
-	}
-
-	/**
-	 * All in one method that will attempt to interact with a clickable entity using
-	 * the target string. Will null check, identify the type, make sure the entity
-	 * can be reached, attempt to force the entity to be on screen and then interact
-	 * using Dax's AccurateMouse class.
-	 * 
-	 * @param entity      The clickable entity we are attempting to interact with
-	 * @param interaction The interaction string to use
-	 * 
-	 * @return Whether we successfully interacted with the entity.
-	 */
-	public static Boolean interactWithEntity(Clickable entity, String interaction) {
-		boolean isObject = false;
-		if (entity != null) {
-			RSModel model = null;
-			if (entity instanceof RSCharacter) {
-				RSCharacter rsCharacter = ((RSCharacter) entity);
-				model = rsCharacter.getModel();
-			} else if (entity instanceof RSGroundItem) {
-				RSGroundItem rsGroundItem = ((RSGroundItem) entity);
-				model = rsGroundItem.getModel();
-			} else if (entity instanceof RSObject) {
-				isObject = true;
-				RSObject rsObject = ((RSObject) entity);
-				model = rsObject.getModel();
-			}
-
-			if (!isObject || makeSureWeCanReachEntity(model)) {
-				if (attemptToGetEntityOnScreen(model)) {
-					if (AccurateMouse.click(entity, interaction)) {
-						ArkUtility.waitForWalkTo();
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * Gets a random tile within a certain radius of the initial tile

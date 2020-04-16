@@ -29,7 +29,7 @@ import scripts.api.ark.Task;
 import scripts.api.ark.TaskSet;
 
 @ScriptManifest(authors = {
-		"Marcusihno" }, category = "Herblore", name = "ARKHerblore", version = 1.23, description = "Fast, safe Herblore trainer with Necklace of Chemistry support. ABC2/10 compliant.", gameMode = 1)
+		"Marcusihno" }, category = "Herblore", name = "ARKHerblore", version = 1.25, description = "Fast, safe Herblore trainer with Necklace of Chemistry support. ABC2/10 compliant.", gameMode = 1)
 
 public class ArkHerblore extends Script implements Starting, Painting, MessageListening07, MousePainting {
 

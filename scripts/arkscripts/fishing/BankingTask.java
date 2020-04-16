@@ -6,6 +6,7 @@ import org.tribot.api2007.Banking;
 import org.tribot.api2007.Inventory;
 import org.tribot.api2007.Player;
 
+import scripts.api.ark.ArkBanking;
 import scripts.api.ark.ArkUtility;
 import scripts.api.ark.Priority;
 import scripts.api.ark.Task;
@@ -50,7 +51,7 @@ public class BankingTask implements Task {
 			if (Banking.openBank()) {
 				// Deposit all items except fishing equipment
 				Timing.waitCondition(() -> depositedAllExcept(), ArkUtility.getDefaultTimeout());
-				ArkUtility.closeBank(false);
+				ArkBanking.closeBank(false);
 				// Reset our inventory value total for profit calculations
 				main.lastInventoryValue = ArkUtility.getPriceOfInventory();
 			}
