@@ -1,2 +1,2 @@
 # Tribot
-Open Source Tribot Scripts by Marcusihno
+Open Source Tribot Scripts by Ark
